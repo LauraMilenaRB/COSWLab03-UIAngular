@@ -2,7 +2,9 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/Lab3COSW.iml" filepath="$PROJECT_DIR$/.idea/Lab3COSW.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/cosw-lab03.iml" filepath="$PROJECT_DIR$/.idea/modules/cosw-lab03.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/cosw-lab03_main.iml" filepath="$PROJECT_DIR$/.idea/modules/cosw-lab03_main.iml" group="cosw-lab03" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/cosw-lab03_test.iml" filepath="$PROJECT_DIR$/.idea/modules/cosw-lab03_test.iml" group="cosw-lab03" />
     </modules>
   </component>
 </project>

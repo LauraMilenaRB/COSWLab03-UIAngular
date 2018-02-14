@@ -1,149 +1,431 @@
-# ui-components-angularjs
-Using different components from the Bootstrap Framework to have an elegant UI.
+# spring-boot-secure-api
+
+**Goals**
+
+* Implement a secure API using JSON Web Token on a Spring Boot Project. 
+* Implementation to consume the API from an Angular JS project.
 
 
-#### Part 1: Navigation Bar
-
-1) Go the [bootstrap website](https://getbootstrap.com/) and check the documentation and samples.
+### Part 1: Implement API
 
 
-2) Follow the *Getting started* tutorial under the *Documentation* section and create a basic html page that uses at least 4 different components:
-* Navbar
-* Modal 
-* Progress
-* Free Choice Element
+1) Include the following dependency on your project:
 
-2) Download the project provided in the repo, run the commands below and make sure it works:
 
-    ```` bash 
-    npm install
-    npm start
+```
+compile('io.jsonwebtoken:jjwt:0.6.0')
+```
+
+2) Go to class *JwtFilter* and uncomment the *doFilter* method implementation.
+
+3) Go to the class *UserController* and uncomment the lines 60 and 61.
+
+4) Run the project using the Gradle command *bootRun*.
+
+5) Verify that authentication works with the following command (from the console):
+
+```
+curl -H "Content-Type: application/json" -X POST -d '{"username":"xyz","password":"password"}' http://localhost:8080/user/login
+```
+
+6) Implement the API for the TODO object. In order to do that you need to follow the next steps:
+
+* Create a model class for the TODO object inside the models package.
+* Create a *TodoService* and *TodoServiceImpl* that has the following methods and the corresponding implementations:
+
+    ``` Java
+     List<Todo> getTodoList();
+     Todo addTodo( Todo todo );
+    ```
+* Make sure you use correctly the annotations [@Autowired](https://stackoverflow.com/questions/19414734/understanding-spring-autowired-usage) and [@Service](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/stereotype/Service.html) in order to do the proper dependencies injection configuration.
+
+7) Create the *TodoController* to handle the API request that will handle the TODO logic and annotate the class with the following annotations:
+
     ````
-    
-3) Modify *app.component.html* in the given project so it contains the following navbar that includes a search input:
-
-    ````html
-        <nav class="navbar navbar-expand-lg navbar-light bg-light">
-          <a class="navbar-brand" href="#">Navbar</a>
-          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-          </button>
-        
-          <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav mr-auto">
-              <li class="nav-item active">
-                <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="#">Link</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link disabled" href="#">Disabled</a>
-              </li>
-            </ul>
-            <form class="form-inline my-2 my-lg-0">
-              <input class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
-              <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
-            </form>
-          </div>
-        </nav>
-
-    ```` 
-    
-    
-3) Add a modal that has the following message "This feature is not implemented yet. Sorry for the inconvenience" and add the logic to display it when the user clicks the *search* button.
-
-
-#### Part 2: Users and Images
-
-1) Navigate */src/app/models* and create a *User* model class:
-
-    ```` TypeScript
-        export class User {
-            private name: string;
-            private lastname: string;
-            private image: string;
-        
-            constructor(name: string, lastname: string, image: string) {
-                this.name = name;
-                this.lastname = lastname;
-                this.image = image;
-            }
-        }
+    @RestController
+    @RequestMapping( "api" )
     ````
-    
-
-2) Navigate */src/app/pages* and create the *user-list-page* package and inside create the following files:
-
-* user-list-page.component.css
-* user-list-page.component.html
-* user-list-page.component.ts
-
-3) Modify the content of *user-list-page.component.html* so it displays the user's info in a table. In order to display the user image use the following code:
-
-    ````html
-        <td><img [src]="user.image" width="150" height="150" /></td>
-    ````
-**Notice that the user image is a url that points to an existing image on the web.    
 
 
-4) Modify the content of *user-list-page.component.ts* so it handles the users list logic (have a look at the *task-list-page.component.ts* for some inspiration).
+### Part 2: Consume API from AngularJS project
 
-5) Navigate */src/app/pages* and create the *user-edit-page* package and inside create the following files:
-   
-   * user-edit-page.component.css
-   * user-edit-page.component.html
-   * user-edit-page.component.ts
+1. Create a folder with the name "common" inside the app folder
+2. Create a folder with the name "config" inside the common folder to hold the initial API configuration
+3. Create the following configuration files:
 
-6) Modify the content of *user-edit-page.component.html* so it contains a form to capture the user's data.
+* Create the config interface, `config.interafce.ts`
+```typescript
+export interface IConfig {
+  apiURL: string;
+}
+```
 
-7) Modify the content of *user-edit-page.component.ts* so it contains the logic to add users (have a look at the *task-edit-page.component.ts* for some inspiration).
+* Create the initial config injection token, `initial-config.ts`
+```typescript
+import { InjectionToken } from '@angular/core';
+import { IConfig } from './config.interface';
 
-8) Navigate to */src/app/services* and create a service *users.service.ts*  to handle the requests to create and list the users.
+export let INITIAL_CONFIG = new InjectionToken<IConfig>('app.config');
+```
 
-    If you want to avoid having to start the SpringBoot project you can add the following mocked code to your methods to skip the security (use this only for testing locally).
- 
-    ````TypeScript
-         
-        login(username: string, password: string) {
-           // Mock
-           this.authService.accessToken = 'test_access_token';
-           return Observable.of({ access_token: this.authService.accessToken });
-        ...
-        
-        list(): Observable<User[]> {
-            // Mock
-            return Observable.of(this.users);
-        ...
-            
-        create(name: string, lastname: string, image: string) {
-          // Mock
-          this.users.push(new User(name, lastname, image));
-          return Observable.of({});  
-        ...
-    ````    
+* Create the app configuration service that will be injected in other app services, `app-configuration.service.ts`
+```typescript
+import { Injectable, Inject } from '@angular/core';
+import { Http } from '@angular/http';
 
-#### Part 3: Users API
+import { IConfig } from './config.interface';
+import { INITIAL_CONFIG } from './initial-config';
 
-1) Open Spring Boot Project from the previous code lab.
+@Injectable()
+export class AppConfiguration {
+  private config: IConfig;
 
-2) Add the missing *image* attribute to the *User* model.
+  constructor( @Inject(INITIAL_CONFIG) initialConfig: IConfig) {
+    this.config = initialConfig;
+  }
 
-3) Implement the logic of the *createUser* method in the *UserServiceImpl* 
+  get apiURL(): String {
+    return this.config && this.config.apiURL;
+  }
+}
+```
 
-4) Implement the endpoint required to retrieve the users list in the *UserController*
+* inject the app configuration service in the main module `app.module.ts` and initialize the configuration
+```typescript
+...
+import { AppConfiguration } from './common/config/app-configuration.service';
+import { INITIAL_CONFIG } from './common/config/initial-config';
+...
+providers: [
+    {
+      provide: INITIAL_CONFIG,
+      useValue: {
+        apiURL: 'http://localhost:8080'
+      }
+    },
+    TodoService,
+    AppConfiguration
+  ],
+...
+```
 
-    ````Java
-    @RequestMapping( value = "/items", method = RequestMethod.GET )
-    public List<User> getUsers(){
+4. Create an AppData service `app/common/app-data.service.ts` to store info locally and add the service as a provider in the main module
+```typescript
+import { Injectable } from '@angular/core';
+
+@Injectable()
+export class AppDataService {
+  private _accessToken: string | null = null;
+
+  public set accessToken(accessToken: string) {
+    this._accessToken = accessToken;
+    localStorage.setItem('AT', accessToken);
+  }
+
+  public get accessToken(): string {
+    if (!this._accessToken) {
+      this._accessToken = localStorage.getItem('AT');
     }
-    ````
-5) Implement the method *registerUser* so it calls the proper method of the *UserService*
+    return this._accessToken;
+  }
 
-6) Comment the Mock code of the Angular project and add the proper implementation to call the API in the login, list and create methods inside the *users.service.ts*.
+  constructor() { }
 
-7) Finally compile the angular project and include the compile output files into the *resources/static* folder of the Spring Boot project. Test and verify that it works correctly :D .
+  public removeAccessToken() {
+    this._accessToken = null;
+    localStorage.removeItem('AT');
+  }
+}
+```
+
+5. Create an AuthService service `app/common/auth.service.ts` that will manage the local session info, add the service as a provider in the main module
+```typescript
+import { Injectable } from '@angular/core';
+import { Http } from '@angular/http';
+import { Router, CanActivate } from '@angular/router';
+
+import { AppConfiguration } from '../common/config/app-configuration.service';
+import { AppDataService } from '../common/app-data.service';
+
+@Injectable()
+export class AuthService implements CanActivate {
+  constructor(public router: Router, public appData: AppDataService) { }
+
+  public get accessToken(): string {
+    return this.appData.accessToken;
+  }
+
+  public set accessToken(accessToken: string) {
+    this.appData.accessToken = accessToken;
+  }
+
+  public isLoggedIn(): boolean {
+    return this.appData.accessToken != null && this.appData.accessToken !== undefined;
+  }
+
+  public signOut() {
+    this.appData.removeAccessToken();
+    this.router.navigate([''])
+  }
+
+  canActivate() {
+    if (!this.isLoggedIn()) {
+      this.router.navigate(['']);
+      return false;
+    }
+    return true;
+  }
+}
+```
+
+6. Inject Http module in the main app module
+```typescript
+import { HttpModule } from '@angular/http';
+...
+...
+  imports: [
+    ...
+    HttpModule
+  ],
+  ...
+```
+
+7. Create an APIService service `app/common/api.service.ts` to interact with the API, add the service as a provider in the main module
+```typescript
+import { Injectable } from '@angular/core';
+import { Http, Response, Headers, RequestOptions } from '@angular/http';
+
+import { AppConfiguration } from '../common/config/app-configuration.service';
+import { AuthService } from '../common/auth.service';
+
+import { Observable } from 'rxjs/Observable';
+import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/catch';
+import 'rxjs/add/observable/throw';
+
+@Injectable()
+export class APIService {
+  constructor(
+    public config: AppConfiguration,
+    public authService: AuthService,
+    public http: Http
+  ) { }
+
+  post(url: string, body: any, options?: any): Observable<any> {
+    return this.http
+      .post(`${this.config.apiURL}/${url}`, body, this.getRequestOptions(options))
+      .map(this.extractData)
+      .catch(this.handleError);
+  }
+
+  private getRequestOptions(options?: any) {
+    let headers = new Headers({ 'Content-Type': 'application/json' });
+    const innerOptions = new RequestOptions({ headers });
+
+    if (!options || options.credentials === undefined || options.credentials === true) {
+      headers.append('Authorization', 'Bearer ' + this.authService.accessToken);
+    }
+
+    return innerOptions;
+  }
+
+  private extractData(res: Response) {
+    return res.json();
+  }
+
+  private handleError(error: Response | any) {
+    let errObj: any;
+
+    if (error instanceof Response) {
+      const body = error.json();
+      errObj = body;
+    } else {
+      errObj = error.message ? { message: error.message } : { message: error };
+    }
+
+    return Observable.throw(errObj);
+  }
+}
+```
+
+8. Create the UsersService `services/users.service.ts` that extends from the APIService to login and logout users, add the service as a provider in the main module( make sure you add the imports needed)
+```typescript
+...
+@Injectable()
+export class UsersService extends APIService {
+  constructor(
+    public config: AppConfiguration,
+    public authService: AuthService,
+    public http: Http
+  ) {
+    super(config, authService, http);
+  }
+
+  login(username: string, password: string) {
+    return this.post('user/login', { username, password }, { credentials: false }).map(loginResponse => {
+      if (loginResponse) {
+        this.authService.accessToken = loginResponse.accessToken;
+      }
+    });
+  }
+}
+```
+
+9. Create the signIn view `pages/sign-in/sign-in-page.component.ts`, `pages/sign-in/sign-in-page.component.html` with the sign in fields using the angular generator in the `pages` folder and inject the UsersService to be able to login the user, add the page to the main module
+```html
+<div class="container">
+  <h2>Sign In</h2>
+  <form [formGroup]="signInForm" (ngSubmit)="doLogin()" novalidate>
+    <div class="form-group">
+      <label for="description">Username</label>
+      <input type="text" class="form-control" id="description" formControlName="username" required>
+    </div>
+
+    <div class="form-group">
+      <label for="priority">Password</label>
+      <input type="password" class="form-control" id="alterEgo" formControlName="password">
+    </div>
+
+    <button type="submit" class="btn btn-success" [disabled]="!signInForm.valid">Sign In</button>
+
+    <p class="text-danger mt-1" *ngIf="loginError">{{loginError}}</p>
+
+  </form>
+</div>
+```
+```typescript
+...
+  doLogin() {
+    this.usersService.login(
+      this.signInForm.get('username').value,
+      this.signInForm.get('password').value).subscribe(loginResponse => {
+        this.router.navigate(['tasks']);
+      }, error => {
+        this.loginError = 'Error Signing in: ' + (error && error.message ? error.message : '');
+      })
+  }
+```
+
+10. Restrict access to logged in user to some views on the app
+
+* Import the Auth service into the main app module and add them to the routes that have to be protected from public access, also adjust the proper routing to load the login form by default
+```typescript
+...
+import { AuthService } from './common/auth.service';
+...
+const ROUTES = [
+  { path: '', component: SignInPageComponent },
+  { path: 'home', component: HomePageComponent },
+  {
+    path: 'tasks', component: TaskListPageComponent,
+    canActivate: [AuthService],
+  },
+  {
+    path: 'edit', component: TaskEditPageComponent,
+    canActivate: [AuthService],
+  },
+  {
+    path: '**', component: PageNotFoundComponent
+  }
+]
+...
+```
+
+12. Adjust the app component `app.component.ts` to load tasks page if the user is already logged in
+```typescript
+...
+  constructor(
+    public authService: AuthService,
+    public router: Router
+  ) {
+    if (!this.authService.isLoggedIn()) {
+      this.router.navigate(['/']);
+    }
+  }
+
+  isLoggedIn() {
+    return this.authService.isLoggedIn();
+  }
+
+  signOut() {
+    this.authService.signOut();
+  }
+...
+```
+
+13. Add a logout option on the main menu `app.component.html`
+```html
+...
+<li *ngIf="isLoggedIn()" class="nav-item">
+  <a href="#" class="nav-link" (click)="signOut()">(Sign Out)</a>
+</li>
+...
+```
+
+14. Hide menu options if user is not logged in using the following directive with the `isLoggedIn` method
+```typescript
+*ngIf="!isLoggedIn()"
+```
+
+### Consume TODO API
 
 
-#### Bonus: master your skills and prove yourself that you actually understand
-4) Implement a call to the server so when the search button is pressed then the method *findUserByEmail* of the Users API is called. A user that has an email that matches the query should be displayed inside the dialog. If no user is found then display a message saying "No user found with the email address".
+1. Implement the get method in the APIService `api.service.ts`
+```typescript
+...
+  get(url: string, options?: any): Observable<any> {
+    return this.http
+      .get(`${this.config.apiURL}/${url}`, this.getRequestOptions(options))
+      .map(this.extractData)
+      .catch(this.handleError);
+  }
+...
+```
+
+2. Integrate the task list service `app/services/todo.service.ts` with the back end, extend the task service from APIService and adjust the list to return an asyncrhonous observable
+```typescript
+...
+import { APIService } from '../common/api.service';
+
+@Injectable()
+export class TodoService extends APIService {
+  private resourceUrl = 'api/todo';
+...
+  list(): Observable<Todo[]> {
+    return this.get(this.resourceUrl);
+  }
+...
+```
+3.Adjust the *task-list-page.component.ts* to suscribe to the server response:
+
+ ```typescript
+... 
+  ngOnInit() {
+     this.todoService.list().subscribe(todosResponse=>{
+       this.todos = todosResponse;
+     })
+   }
+...   
+```
+4. Investigate about asynchronous observable concept that Angular use (Reactive Programming). 
+Once you understand implement the create method on the *todo.service.ts* to make a call to the *post* 
+function created before on the *api.service.ts* to send the TODO object to the server API.
+
+5. Adjust the *task-edit-page.component.ts* file to subscribe to the POST request observer when submitting the form
+```typescript
+...
+ onSubmit() {
+    this.todoService.create(
+      this.todoForm.get('description').value,
+      this.todoForm.get('priority').value,
+      Boolean(this.todoForm.get('completed').value)
+    ).subscribe(serverResponse=>{
+        this.router.navigate(['/tasks']);
+    }, error=>{
+      console.log(error);
+    });
+  }
+...  
+```# COSWLab03-UIAngular
+# COSWLab03-UIAngular
+# COSWLab03-UIAngular
