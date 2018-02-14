@@ -1,0 +1,19 @@
+<h2>List Users</h2>
+<table class="table">
+  <thead>
+  <tr>
+    <th scope="col">Name</th>
+    <th scope="col">Lastname</th>
+    <th scope="col">Email</th>
+    <th scope="col">Image</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr *ngFor="let u of users">
+    <td>{{u.firstname}}</td>
+    <td>{{u.lastname}}</td>
+    <td>{{u.email}}</td>
+    <td><img [src]="u.image" width="150" height="150" /></td>
+  </tr>
+  </tbody>
+</table>
